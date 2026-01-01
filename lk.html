@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级卡密管理系统</title>
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --dark: #1e272e;
+            --light: #f1f2f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f6fa;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3a5bef;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #ff3f4f;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: rgba(46, 213, 115, 0.2);
+            color: var(--success);
+        }
+        
+        .status-expired {
+            background-color: rgba(255, 71, 87, 0.2);
+            color: var(--danger);
+        }
+        
+        .status-pending {
+            background-color: rgba(255, 165, 2, 0.2);
+            color: var(--warning);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background-color: rgba(46, 213, 115, 0.2);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+        
+        .alert-danger {
+            background-color: rgba(255, 71, 87, 0.2);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+        
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>高级卡密管理系统</h1>
+            <p>安全可靠的卡密生成与验证平台</p>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="generate">生成卡密</div>
+            <div class="tab" data-tab="verify">验证卡密</div>
+            <div class="tab" data-tab="manage">管理卡密</div>
+        </div>
+        
+        <div id="generate" class="tab-content active">
+            <h2>生成新卡密</h2>
+            <div class="form-group">
+                <label for="key-type">卡密类型</label>
+                <select id="key-type">
+                    <option value="day">按天卡</option>
+                    <option value="week">按周卡</option>
+                    <option value="month">按月卡</option>
+                    <option value="year">按年卡</option>
+                    <option value="custom">自定义</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="custom-days-group" style="display: none;">
+                <label for="custom-days">自定义天数</label>
+                <input type="number" id="custom-days" placeholder="请输入天数">
+            </div>
+            
+            <div class="form-group">
+                <label for="key-prefix">卡密前缀 (可选)</label>
+                <input type="text" id="key-prefix" placeholder="例如: VIP">
+            </div>
+            
+            <div class="form-group">
+                <label for="key-count">生成数量</label>
+                <input type="number" id="key-count" value="1" min="1" max="1000">
+            </div>
+            
+            <div class="form-group">
+                <label for="key-bind">绑定用户 (可选)</label>
+                <input type="text" id="key-bind" placeholder="用户名或ID">
+            </div>
+            
+            <button id="generate-btn">生成卡密</button>
+            
+            <div id="generate-result" style="margin-top: 20px;"></div>
+        </div>
+        
+        <div id="verify" class="tab-content">
+            <h2>验证卡密</h2>
+            <div class="form-group">
+                <label for="verify-key">输入卡密</label>
+                <input type="text" id="verify-key" placeholder="请输入卡密">
+            </div>
+            
+            <div class="form-group">
+                <label for="verify-hwid">设备标识 (可选)</label>
+                <input type="text" id="verify-hwid" placeholder="设备唯一标识">
+            </div>
+            
+            <button id="verify-btn">验证卡密</button>
+            
+            <div id="verify-result" style="margin-top: 20px;"></div>
+        </div>
+        
+        <div id="manage" class="tab-content">
+            <h2>卡密管理</h2>
+            
+            <div class="search-box">
+                <input type="text" id="search-key" placeholder="搜索卡密或用户名">
+                <button id="search-btn">搜索</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>卡密</th>
+                        <th>类型</th>
+                        <th>绑定用户</th>
+                        <th>有效期</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="key-list">
+                    <!-- 卡密列表将通过JavaScript动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据库
+        let keysDB = JSON.parse(localStorage.getItem('keysDB')) || [];
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 标签切换
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有active类
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // 添加active类到当前标签
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // 卡密类型切换
+            document.getElementById('key-type').addEventListener('change', function() {
+                const customDaysGroup = document.getElementById('custom-days-group');
+                if (this.value === 'custom') {
+                    customDaysGroup.style.display = 'block';
+                } else {
+                    customDaysGroup.style.display = 'none';
+                }
+            });
+            
+            // 生成卡密
+            document.getElementById('generate-btn').addEventListener('click', generateKeys);
+            
+            // 验证卡密
+            document.getElementById('verify-btn').addEventListener('click', verifyKey);
+            
+            // 搜索卡密
+            document.getElementById('search-btn').addEventListener('click', searchKeys);
+            
+            // 初始化卡密列表
+            renderKeyList();
+        });
+        
+        // 生成随机卡密
+        function generateRandomKey(length = 16) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        // 生成卡密
+        function generateKeys() {
+            const type = document.getElementById('key-type').value;
+            const prefix = document.getElementById('key-prefix').value;
+            const count = parseInt(document.getElementById('key-count').value);
+            const bindUser = document.getElementById('key-bind').value;
+            
+            let days;
+            switch(type) {
+                case 'day': days = 1; break;
+                case 'week': days = 7; break;
+                case 'month': days = 30; break;
+                case 'year': days = 365; break;
+                case 'custom': days = parseInt(document.getElementById('custom-days').value); break;
+                default: days = 1;
+            }
+            
+            if (isNaN(days) || days <= 0) {
+                showAlert('generate-result', '请输入有效的天数', 'danger');
+                return;
+            }
+            
+            const generatedKeys = [];
+            for (let i = 0; i < count; i++) {
+                const key = (prefix ? prefix + '-' : '') + generateRandomKey();
+                const now = new Date();
+                const expireDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+                
+                const keyData = {
+                    key: key,
+                    type: type,
+                    days: days,
+                    user: bindUser || null,
+                    hwid: null,
+                    createdAt: now.toISOString(),
+                    expireAt: expireDate.toISOString(),
+                    used: false,
+                    active: true
+                };
+                
+                keysDB.push(keyData);
+                generatedKeys.push(key);
+            }
+            
+            // 保存到本地存储
+            localStorage.setItem('keysDB', JSON.stringify(keysDB));
+            
+            // 显示结果
+            let resultHTML = '<div class="alert alert-success">成功生成 ' + count + ' 个卡密：</div>';
+            resultHTML += '<div style="background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace;">';
+            generatedKeys.forEach(key => {
+                resultHTML += '<div>' + key + '</div>';
+            });
+            resultHTML += '</div>';
+            
+            document.getElementById('generate-result').innerHTML = resultHTML;
+            
+            // 更新卡密列表
+            renderKeyList();
+        }
+        
+        // 验证卡密
+        function verifyKey() {
+            const key = document.getElementById('verify-key').value.trim();
+            const hwid = document.getElementById('verify-hwid').value.trim();
+            
+            if (!key) {
+                showAlert('verify-result', '请输入卡密', 'danger');
+                return;
+            }
+            
+            const keyData = keysDB.find(k => k.key === key);
+            
+            if (!keyData) {
+                showAlert('verify-result', '卡密不存在', 'danger');
+                return;
+            }
+            
+            const now = new Date();
+            const expireDate = new Date(keyData.expireAt);
+            
+            if (expireDate < now) {
+                showAlert('verify-result', '卡密已过期', 'danger');
+                return;
+            }
+            
+            if (keyData.user && !keyData.used) {
+                keyData.user = keyData.user;
+            }
+            
+            if (keyData.used && keyData.hwid && keyData.hwid !== hwid) {
+                showAlert('verify-result', '卡密已被绑定到其他设备', 'danger');
+                return;
+            }
+            
+            if (!keyData.used && hwid) {
+                keyData.hwid = hwid;
+                keyData.used = true;
+                localStorage.setItem('keysDB', JSON.stringify(keysDB));
+            }
+            
+            let message = '<div class="alert alert-success">卡密验证成功！</div>';
+            message += '<div style="margin-top: 15px;">';
+            message += '<p><strong>卡密：</strong>' + keyData.key + '</p>';
+            message += '<p><strong>类型：</strong>' + getTypeName(keyData.type) + '卡 (' + keyData.days + '天)</p>';
+            if (keyData.user) {
+                message += '<p><strong>绑定用户：</strong>' + keyData.user + '</p>';
+            }
+            message += '<p><strong>有效期至：</strong>' + new Date(keyData.expireAt).toLocaleString() + '</p>';
+            message += '</div>';
+            
+            document.getElementById('verify-result').innerHTML = message;
+        }
+        
+        // 获取卡密类型名称
+        function getTypeName(type) {
+            switch(type) {
+                case 'day': return '天';
+                case 'week': return '周';
+                case 'month': return '月';
+                case 'year': return '年';
+                case 'custom': return '自定义';
+                default: return '';
+            }
+        }
+        
+        // 搜索卡密
+        function searchKeys() {
+            const searchTerm = document.getElementById('search-key').value.toLowerCase();
+            renderKeyList(searchTerm);
+        }
+        
+        // 渲染卡密列表
+        function renderKeyList(searchTerm = '') {
+            const filteredKeys = searchTerm 
+                ? keysDB.filter(k => 
+                    k.key.toLowerCase().includes(searchTerm) || 
+                    (k.user && k.user.toLowerCase().includes(searchTerm)))
+                : keysDB;
+            
+            const tbody = document.getElementById('key-list');
+            tbody.innerHTML = '';
+            
+            filteredKeys.forEach(key => {
+                const now = new Date();
+                const expireDate = new Date(key.expireAt);
+                const isExpired = expireDate < now;
+                const isActive = key.active && !isExpired;
+                
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td>${key.key}</td>
+                    <td>${getTypeName(key.type)}卡</td>
+                    <td>${key.user || '-'}</td>
+                    <td>${expireDate.toLocaleDateString()}</td>
+                    <td>
+                        <span class="status ${isActive ? 'status-active' : isExpired ? 'status-expired' : 'status-pending'}">
+                            ${isActive ? '有效' : isExpired ? '已过期' : '未激活'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-danger" onclick="deleteKey('${key.key}')">删除</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // 删除卡密
+        function deleteKey(key) {
+            if (confirm('确定要删除卡密 ' + key + ' 吗？')) {
+                keysDB = keysDB.filter(k => k.key !== key);
+                localStorage.setItem('keysDB', JSON.stringify(keysDB));
+                renderKeyList();
+            }
+        }
+        
+        // 显示提示信息
+        function showAlert(elementId, message, type) {
+            const alertClass = type === 'danger' ? 'alert-danger' : 'alert-success';
+            document.getElementById(elementId).innerHTML = `
+                <div class="alert ${alertClass}">${message}</div>
+            `;
+        }
+    </script>
+</body>
+</html>
