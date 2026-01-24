@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Luau Obfuscator v5 - ULTIMATE</title>
+    <style>
+        body { background: #111; color: #0f0; font-family: monospace; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .title { color: #f00; text-align: center; margin: 20px 0; }
+        .split { display: flex; gap: 20px; }
+        .panel { flex: 1; }
+        textarea { 
+            width: 100%; 
+            height: 400px; 
+            background: #000; 
+            color: #0f0; 
+            border: 2px solid #333; 
+            padding: 10px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 12px; 
+            resize: vertical;
+        }
+        .buttons { margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+        button { 
+            background: #222; 
+            color: #0f0; 
+            border: 1px solid #0a0; 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            min-width: 100px;
+        }
+        button:hover { background: #333; }
+        .preview { 
+            background: #000; 
+            border: 1px solid #444; 
+            padding: 10px; 
+            margin-top: 20px; 
+            max-height: 200px; 
+            overflow-y: auto;
+            color: #0ff;
+        }
+        .status {
+            color: #ff0;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Luau Obfuscator v5 - 完全隐藏</h1>
+        
+        <div class="split">
+            <div class="panel">
+                <h2>Input Lua Code:</h2>
+                <textarea id="input" placeholder="Paste your Lua code here...">print("test")</textarea>
+            </div>
+            <div class="panel">
+                <h2>Obfuscated Output:</h2>
+                <textarea id="output" placeholder="Obfuscated code will appear here..." readonly></textarea>
+            </div>
+        </div>
+        
+        <div class="status" id="status">就绪</div>
+        
+        <div class="buttons">
+            <button onclick="obfuscate()">Obfuscate</button>
+            <button onclick="copyOutput()">Copy</button>
+            <button onclick="testCode()">Test</button>
+            <button onclick="loadExample()">Example</button>
+            <button onclick="clearAll()">Clear</button>
+        </div>
+        
+        <div class="preview" id="preview"></div>
+    </div>
+
+    <script>
+        // === 终极隐藏加密 ===
+        
+        function randomStr(len) {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
+            let result = '';
+            for(let i = 0; i < len; i++) {
+                result += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return result;
+        }
+
+        // 高级加密：多层XOR + 置换
+        function advancedEncrypt(text) {
+            // 第一层：简单XOR
+            let layer1 = '';
+            const key1 = Math.floor(Math.random() * 255) + 1;
+            for(let i = 0; i < text.length; i++) {
+                layer1 += String.fromCharCode(text.charCodeAt(i) ^ key1);
+            }
+            
+            // 第二层：反转
+            let layer2 = layer1.split('').reverse().join('');
+            
+            // 第三层：再次XOR
+            let hex = '';
+            const key2 = Math.floor(Math.random() * 255) + 1;
+            for(let i = 0; i < layer2.length; i++) {
+                hex += (layer2.charCodeAt(i) ^ key2).toString(16).padStart(2, '0');
+            }
+            
+            return {
+                hex: hex,
+                key1: key1,
+                key2: key2,
+                reversed: true
+            };
+        }
+
+        // 生成垃圾代码（不使用do/end）
+        function generateJunkCode() {
+            const junk = [];
+            const ops = ['+', '-', '*', '//', '%', '^'];
+            
+            for(let i = 0; i < 6; i++) {
+                const a = randomStr(6);
+                const b = randomStr(6);
+                const c = randomStr(6);
+                const num1 = Math.floor(Math.random() * 1000);
+                const num2 = Math.floor(Math.random() * 100) + 1;
+                const op = ops[Math.floor(Math.random() * ops.length)];
+                
+                junk.push(`
+;${a}=${num1};${b}=${num2};${c}=${a}${op}${b}`);
+            }
+            
+            return junk.join('');
+        }
+
+        // 编码Lua关键字为ASCII序列
+        function encodeKeywords(code) {
+            // 替换local为ASCII编码
+            code = code.replace(/\blocal\b/g, function() {
+                const varName = randomStr(8);
+                return `;${varName}=string.char(108,111,99,97,108);_ENV[${varName}]`;
+            });
+            
+            // 替换function为ASCII编码
+            code = code.replace(/\bfunction\b/g, function() {
+                const varName = randomStr(8);
+                return `;${varName}=string.char(102,117,110,99,116,105,111,110);_ENV[${varName}]`;
+            });
+            
+            // 替换if为ASCII编码
+            code = code.replace(/\bif\b/g, function() {
+                const varName = randomStr(8);
+                return `;${varName}=string.char(105,102);_ENV[${varName}]`;
+            });
+            
+            // 替换end为ASCII编码
+            code = code.replace(/\bend\b/g, function() {
+                const varName = randomStr(8);
+                return `;${varName}=string.char(101,110,100);_ENV[${varName}]`;
+            });
+            
+            // 替换return为ASCII编码
+            code = code.replace(/\breturn\b/g, function() {
+                const varName = randomStr(8);
+                return `;${varName}=string.char(114,101,116,117,114,110);_ENV[${varName}]`;
+            });
+            
+            return code;
+        }
+
+        // 完全混淆代码
+        function ultimateObfuscate(code) {
+            try {
+                // 1. 清理代码
+                let cleaned = code
+                    .replace(/--\[\[[\s\S]*?\]\]/g, '')
+                    .replace(/--[^\n]*/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                
+                // 2. 混淆变量名和函数名
+                const vars = new Set();
+                const varRegex = /\b([a-zA-Z_][a-zA-Z0-9_]*)\b/g;
+                let match;
+                
+                while((match = varRegex.exec(cleaned)) !== null) {
+                    const varName = match[1];
+                    if(varName.length >= 2 && !/^(and|or|not|true|false|nil)$/.test(varName)) {
+                        vars.add(varName);
+                    }
+                }
+                
+                // 替换变量名
+                const varMap = new Map();
+                Array.from(vars).forEach(v => {
+                    varMap.set(v, randomStr(10));
+                });
+                
+                let obfuscated = cleaned;
+                Array.from(varMap.keys()).sort((a,b) => b.length - a.length).forEach(oldName => {
+                    obfuscated = obfuscated.replace(new RegExp(`\\b${oldName}\\b`, 'g'), varMap.get(oldName));
+                });
+                
+                // 3. 加密字符串
+                const stringRegex = /"([^"\\]*(\\.[^"\\]*)*)"/g;
+                const strings = [];
+                let strIndex = 0;
+                
+                while((match = stringRegex.exec(obfuscated)) !== null) {
+                    const full = match[0];
+                    const content = match[1];
+                    const encrypted = advancedEncrypt(content);
+                    const varName = randomStr(12);
+                    
+                    strings.push({
+                        original: full,
+                        varName: varName,
+                        data: encrypted
+                    });
+                    
+                    obfuscated = obfuscated.replace(full, `"${varName}"`);
+                    strIndex++;
+                }
+                
+                // 4. 构建解密器
+                let decryptor = '';
+                strings.forEach(s => {
+                    const dataVar = randomStr(10);
+                    const key1Var = randomStr(10);
+                    const key2Var = randomStr(10);
+                    const tempVar = randomStr(10);
+                    const resultVar = s.varName;
+                    
+                    decryptor += `
+;${dataVar}="${s.data.hex}"
+;${key1Var}=${s.data.key1}
+;${key2Var}=${s.data.key2}
+;${resultVar}=""
+;for ${randomStr(4)}=1,#${dataVar},2 do 
+    ;${tempVar}=tonumber(${dataVar}:sub(${randomStr(4)},${randomStr(4)}+1),16)~${key2Var}
+    ;${resultVar}=${resultVar}..string.char(${tempVar})
+;end
+;if ${s.data.reversed} then 
+    ;${tempVar}=""
+    ;for ${randomStr(4)}=#${resultVar},1,-1 do 
+        ;${tempVar}=${tempVar}..${resultVar}:sub(${randomStr(4)},${randomStr(4)})
+    ;end
+    ;${resultVar}=${tempVar}
+;end
+;${tempVar}=""
+;for ${randomStr(4)}=1,#${resultVar} do 
+    ;${tempVar}=${tempVar}..string.char(${resultVar}:byte(${randomStr(4)})~${key1Var})
+;end
+;${resultVar}=${tempVar}
+`;
+                    
+                    obfuscated = obfuscated.replace(`"${resultVar}"`, resultVar);
+                });
+                
+                // 5. 编码关键字
+                obfuscated = encodeKeywords(obfuscated);
+                
+                // 6. 添加垃圾代码
+                const junk = generateJunkCode();
+                
+                // 7. 最终组装（不使用明显的loadstring）
+                const codeVar = randomStr(15);
+                const loadVar = randomStr(15);
+                
+                // 隐藏loadstring调用
+                const loadStringCode = `
+;${codeVar}=[[${obfuscated}]]
+;${loadVar}=_G[string.char(108,111,97,100,115,116,114,105,110,103)]
+;if ${loadVar} then 
+    ;${randomStr(8)},${randomStr(8)}=${loadVar}(${codeVar})
+    ;if ${randomStr(8)} then 
+        ;${randomStr(8)},${randomStr(8)}=_G[string.char(112,99,97,108,108)](${randomStr(8)})
+    ;end
+;end
+`;
+                
+                const finalCode = junk + decryptor + loadStringCode;
+                
+                // 8. 压缩格式（移除多余空格）
+                return {
+                    code: finalCode.replace(/\n\s*/g, ';').replace(/;;+/g, ';').trim(),
+                    originalSize: code.length,
+                    encryptedSize: finalCode.length
+                };
+                
+            } catch(e) {
+                console.error(e);
+                return {
+                    code: '错误: ' + e.message,
+                    originalSize: code.length,
+                    encryptedSize: 0
+                };
+            }
+        }
+
+        // === 界面功能 ===
+        function updateStatus(text) {
+            document.getElementById('status').textContent = text;
+        }
+
+        function obfuscate() {
+            const input = document.getElementById('input').value;
+            if(!input.trim()) {
+                updateStatus('错误: 请输入代码');
+                return;
+            }
+            
+            updateStatus('终极加密中...');
+            document.getElementById('output').value = '正在加密...';
+            
+            setTimeout(() => {
+                try {
+                    const result = ultimateObfuscate(input);
+                    document.getElementById('output').value = result.code;
+                    
+                    const preview = result.code.substring(0, 400);
+                    document.getElementById('preview').textContent = preview + (result.code.length > 400 ? '...' : '');
+                    
+                    updateStatus(`完成! ${result.originalSize} → ${result.encryptedSize} 字符`);
+                } catch(e) {
+                    updateStatus('错误: ' + e.message);
+                    document.getElementById('output').value = '加密失败';
+                }
+            }, 100);
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            if(!output.value || output.value.includes('正在加密')) {
+                updateStatus('没有内容');
+                return;
+            }
+            
+            output.select();
+            document.execCommand('copy');
+            updateStatus('已复制!');
+        }
+
+        function testCode() {
+            const code = document.getElementById('output').value;
+            if(!code || code.includes('正在加密')) {
+                updateStatus('请先生成代码');
+                return;
+            }
+            
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html><head><title>测试</title>
+                <style>body{background:#000;color:#0f0;font-family:monospace;padding:20px;}
+                pre{white-space:pre-wrap;background:#111;padding:15px;border:1px solid #333;}</style>
+                </head><body>
+                <h2>完全加密代码</h2><pre>${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+                </body></html>`);
+        }
+
+        function loadExample() {
+            const example = `print("Hello Delta!")
+for i = 1, 5 do
+    print("Count: " .. i)
+end`;
+            document.getElementById('input').value = example;
+            setTimeout(obfuscate, 100);
+        }
+
+        function clearAll() {
+            if(confirm('清空?')) {
+                document.getElementById('input').value = '';
+                document.getElementById('output').value = '';
+                document.getElementById('preview').textContent = '';
+                updateStatus('已清空');
+            }
+        }
+
+        updateStatus('就绪 - 输入代码后点击Obfuscate');
+        setTimeout(() => {
+            if(!document.getElementById('input').value.trim()) {
+                loadExample();
+            }
+        }, 500);
+    </script>
+</body>
+                                                                                              </html>
