@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡密管理系统</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui,sans-serif; }
+        body { background:#f0f2f5; padding:20px; }
+        .container { max-width:1200px; margin:0 auto; }
+        .header { background:white; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color:#1a1a1a; font-size:24px; }
+        .api-url { color:#666; font-size:14px; margin-top:5px; word-break:break-all; }
+        .tabs { display:flex; gap:10px; margin-bottom:20px; }
+        .tab { padding:10px 20px; background:white; border-radius:8px; cursor:pointer; border:1px solid #ddd; }
+        .tab.active { background:#4361ee; color:white; border-color:#4361ee; }
+        .panel { display:none; }
+        .panel.active { display:block; }
+        .grid { display:grid; grid-template-columns:1fr 2fr; gap:20px; }
+        .card { background:white; border-radius:12px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+        .card h2 { font-size:18px; margin-bottom:15px; color:#333; }
+        input, select { width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; margin-bottom:15px; }
+        .btn { background:#4361ee; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; width:100%; }
+        .btn-danger { background:#dc3545; }
+        .btn-success { background:#28a745; }
+        .btn-small { padding:5px 10px; width:auto; }
+        .list { max-height:400px; overflow-y:auto; }
+        .item { background:#f8f9fa; border-radius:6px; padding:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+        .item-info { flex:1; }
+        .item-key { font-weight:bold; color:#4361ee; }
+        .badge { background:#28a745; color:white; padding:2px 6px; border-radius:4px; font-size:12px; margin-left:8px; }
+        .badge.expired { background:#dc3545; }
+        .result { background:#d4edda; color:#155724; padding:15px; border-radius:6px; margin-top:15px; display:none; text-align:center; }
+        .new-key { font-size:20px; font-weight:bold; color:#4361ee; margin:10px 0; }
+        .api-status { position:fixed; top:20px; right:20px; background:white; padding:8px 15px; border-radius:20px; font-size:13px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+        .stats { display:flex; gap:15px; margin-bottom:20px; }
+        .stat { background:white; border-radius:8px; padding:15px; flex:1; text-align:center; }
+        .stat-number { font-size:24px; font-weight:bold; color:#4361ee; }
+    </style>
+</head>
+<body>
+    <div class="api-status" id="apiStatus">检测API中...</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🔐 卡密管理系统</h1>
+            <div class="api-url">API: https://calm-bread-b40e.lklklklk-6663.workers.dev</div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat"><div class="stat-number" id="totalCards">0</div><div>总卡密</div></div>
+            <div class="stat"><div class="stat-number" id="validCards">0</div><div>有效</div></div>
+            <div class="stat"><div class="stat-number" id="blacklistCount">0</div><div>黑名单</div></div>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('cards')">📋 卡密管理</div>
+            <div class="tab" onclick="switchTab('blacklist')">⛔ 黑名单</div>
+        </div>
+        
+        <!-- 卡密面板 -->
+        <div id="cards-panel" class="panel active">
+            <div class="grid">
+                <!-- 生成卡密 -->
+                <div class="card">
+                    <h2>✨ 生成卡密</h2>
+                    <input type="text" id="hwid" placeholder="HWID" value="HWID-11111-AAAAA">
+                    <select id="expire">
+                        <option value="7">7天</option>
+                        <option value="30">30天</option>
+                        <option value="90">90天</option>
+                        <option value="180">180天</option>
+                        <option value="365">1年</option>
+                        <option value="9999">永久</option>
+                    </select>
+                    <select id="prefix">
+                        <option value="VIP">VIP</option>
+                        <option value="PRO">PRO</option>
+                        <option value="GOLD">GOLD</option>
+                        <option value="FREE">FREE</option>
+                    </select>
+                    <button class="btn" onclick="generateCard()">生成卡密</button>
+                    
+                    <div class="result" id="result">
+                        <div>✅ 生成成功</div>
+                        <div class="new-key" id="newCardKey">VIP-ABCD-1234</div>
+                        <button class="btn-small btn-success" onclick="copyCard()" style="width:100%;">复制</button>
+                    </div>
+                </div>
+                
+                <!-- 卡密列表 -->
+                <div class="card">
+                    <h2>📋 卡密列表 (<span id="cardCount">0</span>)</h2>
+                    <div class="list" id="cardList">加载中...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 黑名单面板 -->
+        <div id="blacklist-panel" class="panel">
+            <div class="grid">
+                <!-- 添加黑名单 -->
+                <div class="card">
+                    <h2>⛔ 添加黑名单</h2>
+                    <input type="text" id="banHwid" placeholder="HWID">
+                    <button class="btn btn-danger" onclick="addToBlacklist()">加入黑名单</button>
+                </div>
+                
+                <!-- 黑名单列表 -->
+                <div class="card">
+                    <h2>📋 黑名单列表 (<span id="blacklistCountSpan">0</span>)</h2>
+                    <div class="list" id="blacklistList">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'https://calm-bread-b40e.lklklklk-6663.workers.dev';
+        
+        // 切换标签
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(tab + '-panel').classList.add('active');
+        }
+        
+        // API状态检测
+        async function checkAPI() {
+            try {
+                const res = await fetch(API + '/api/cards');
+                if (res.ok) {
+                    document.getElementById('apiStatus').innerHTML = '✅ API已连接';
+                } else {
+                    document.getElementById('apiStatus').innerHTML = '❌ API连接失败';
+                }
+            } catch {
+                document.getElementById('apiStatus').innerHTML = '❌ API连接失败';
+            }
+        }
+        
+        // 加载卡密列表
+        async function loadCards() {
+            try {
+                const res = await fetch(API + '/api/cards');
+                const data = await res.json();
+                const list = document.getElementById('cardList');
+                
+                if (!data.cards || data.cards.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">暂无卡密</div>';
+                    document.getElementById('cardCount').textContent = '0';
+                    document.getElementById('totalCards').textContent = '0';
+                    document.getElementById('validCards').textContent = '0';
+                    return;
+                }
+                
+                const cards = data.cards;
+                document.getElementById('cardCount').textContent = cards.length;
+                document.getElementById('totalCards').textContent = cards.length;
+                
+                const now = new Date();
+                const valid = cards.filter(c => new Date(c.expire) > now).length;
+                document.getElementById('validCards').textContent = valid;
+                
+                let html = '';
+                cards.sort((a, b) => new Date(b.expire) - new Date(a.expire));
+                
+                cards.forEach(card => {
+                    const expired = new Date(card.expire) < now;
+                    html += `
+                        <div class="item">
+                            <div class="item-info">
+                                <div class="item-key">${card.key}</div>
+                                <div>HWID: ${card.hwid}</div>
+                                <div>过期: ${card.expire} 
+                                    ${expired ? '<span class="badge expired">已过期</span>' : ''}
+                                </div>
+                            </div>
+                            <button class="btn-small btn-danger" onclick="deleteCard('${card.key}')">删除</button>
+                        </div>
+                    `;
+                });
+                
+                list.innerHTML = html;
+            } catch {
+                document.getElementById('cardList').innerHTML = '<div style="color:red; padding:40px;">加载失败</div>';
+            }
+        }
+        
+        // 生成卡密
+        async function generateCard() {
+            const hwid = document.getElementById('hwid').value;
+            const days = document.getElementById('expire').value;
+            const prefix = document.getElementById('prefix').value;
+            
+            const btn = event.target;
+            btn.textContent = '生成中...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(API + '/api/generate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ hwid, days, prefix })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('newCardKey').textContent = data.card.key;
+                    document.getElementById('result').style.display = 'block';
+                    loadCards();
+                }
+            } catch {}
+            
+            btn.textContent = '生成卡密';
+            btn.disabled = false;
+        }
+        
+        // 删除卡密
+        async function deleteCard(key) {
+            if (!confirm('确定删除？')) return;
+            
+            await fetch(API + '/api/delete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ key })
+            });
+            loadCards();
+        }
+        
+        // 复制卡密
+        function copyCard() {
+            const key = document.getElementById('newCardKey').textContent;
+            navigator.clipboard.writeText(key);
+            alert('已复制');
+        }
+        
+        // 加载黑名单
+        async function loadBlacklist() {
+            try {
+                const res = await fetch(API + '/api/blacklist');
+                const data = await res.json();
+                const list = document.getElementById('blacklistList');
+                
+                const blacklist = data.blacklist || [];
+                document.getElementById('blacklistCount').textContent = blacklist.length;
+                document.getElementById('blacklistCountSpan').textContent = blacklist.length;
+                
+                if (blacklist.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">黑名单为空</div>';
+                    return;
+                }
+                
+                let html = '';
+                blacklist.forEach(hwid => {
+                    html += `
+                        <div class="item">
+                            <div style="color:#dc3545;">${hwid}</div>
+                            <button class="btn-small btn-success" onclick="removeFromBlacklist('${hwid}')">移除</button>
+                        </div>
+                    `;
+                });
+                
+                list.innerHTML = html;
+            } catch {}
+        }
+        
+        // 添加黑名单
+        async function addToBlacklist() {
+            const hwid = document.getElementById('banHwid').value;
+            if (!hwid) return alert('请输入HWID');
+            
+            await fetch(API + '/api/blacklist/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ hwid })
+            });
+            
+            document.getElementById('banHwid').value = '';
+            loadBlacklist();
+        }
+        
+        // 移除黑名单
+        async function removeFromBlacklist(hwid) {
+            await fetch(API + '/api/blacklist/remove', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ hwid })
+            });
+            loadBlacklist();
+        }
+        
+        // 初始化
+        checkAPI();
+        loadCards();
+        loadBlacklist();
+    </script>
+</body>
+</html>
