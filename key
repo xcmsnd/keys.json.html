@@ -1,2 +1,1 @@
--- 速度
-game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=30
+A = "B"
