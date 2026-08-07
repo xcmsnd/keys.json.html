@@ -3,6 +3,3 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
     Text = "请等待作者修复请谅解",
     Duration = 3
 })
-
--- 速度
-game.Players.LocalPlayer.Character.Humanoid.WalkSpeed=30
