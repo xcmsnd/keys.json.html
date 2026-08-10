@@ -1,5 +1,6 @@
+A = "B"
 game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "脚本暂时停用",
-    Text = "请等待作者修复请谅解",
+    Title = "脚本暂时开启",
+    Text = "",
     Duration = 3
 })
