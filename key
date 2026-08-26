@@ -1,5 +1,1 @@
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "脚本已停用",
-    Text = "可询问群主或者管理",
-    Duration = 5
-})
+A = "B"
