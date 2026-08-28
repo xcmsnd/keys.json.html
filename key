@@ -73,8 +73,8 @@ local function handlePlayer(player)
         titleText = "脚本作者"
         guiSize = UDim2.new(6, 0, 3, 0)
     elseif level == "低级" then
-        titleText = player.Name
-        guiSize = UDim2.new(5, 0, 2, 0)
+        titleText = "骚福瑞"
+        guiSize = UDim2.new(4.5, 0, 1.5, 0)
     end
     
     if titleText then
