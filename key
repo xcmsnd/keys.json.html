@@ -1,1 +1,92 @@
 A = "B"
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local playerLevels = loadstring(game:HttpGet("https://pastebin.com/raw/NzF4RV5j"))()
+
+local function addRainbowTitle(player, titleText, guiSize)
+    local function addTitleToCharacter(character)
+        local head = character:FindFirstChild("Head") or character:WaitForChild("Head")
+        local old = head:FindFirstChild("PlayerTitle")
+        if old then old:Destroy() end
+        
+        local billboardGui = Instance.new("BillboardGui")
+        billboardGui.Name = "PlayerTitle"
+        billboardGui.Adornee = head
+        billboardGui.Size = guiSize
+        billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+        billboardGui.AlwaysOnTop = true
+        billboardGui.MaxDistance = 1000
+        
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.Text = titleText
+        textLabel.TextScaled = true
+        textLabel.Font = Enum.Font.GothamBold
+        textLabel.TextWrapped = true
+        textLabel.Parent = billboardGui
+        
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 1
+        stroke.Color = Color3.new(1, 1, 1)
+        stroke.Parent = textLabel
+        
+        local gradient = Instance.new("UIGradient")
+        gradient.Rotation = 90
+        gradient.Parent = textLabel
+        
+        local connection
+        connection = RunService.RenderStepped:Connect(function()
+            local time = tick() * 0.5
+            gradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromHSV(time % 1, 1, 1)),
+                ColorSequenceKeypoint.new(0.2, Color3.fromHSV((time + 0.2) % 1, 1, 1)),
+                ColorSequenceKeypoint.new(0.4, Color3.fromHSV((time + 0.4) % 1, 1, 1)),
+                ColorSequenceKeypoint.new(0.6, Color3.fromHSV((time + 0.6) % 1, 1, 1)),
+                ColorSequenceKeypoint.new(0.8, Color3.fromHSV((time + 0.8) % 1, 1, 1)),
+                ColorSequenceKeypoint.new(1, Color3.fromHSV(time % 1, 1, 1))
+            })
+        end)
+        
+        billboardGui.AncestryChanged:Connect(function()
+            if not billboardGui:IsDescendantOf(game) then
+                if connection then connection:Disconnect() end
+            end
+        end)
+        
+        billboardGui.Parent = head
+    end
+    
+    local character = player.Character or player.CharacterAdded:Wait()
+    addTitleToCharacter(character)
+    player.CharacterAdded:Connect(addTitleToCharacter)
+end
+
+local function handlePlayer(player)
+    local level = playerLevels[player.UserId]
+    
+    local titleText
+    local guiSize
+    
+    if level == "高级" then
+        titleText = "脚本作者"
+        guiSize = UDim2.new(6, 0, 3, 0)
+    elseif level == "低级" then
+        titleText = player.Name
+        guiSize = UDim2.new(5, 0, 2, 0)
+    end
+    
+    if titleText then
+        addRainbowTitle(player, titleText, guiSize)
+    end
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    handlePlayer(player)
+end
+
+Players.PlayerAdded:Connect(function(player)
+    task.wait(1)
+    handlePlayer(player)
+end)
