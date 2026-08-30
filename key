@@ -71,10 +71,10 @@ local function handlePlayer(player)
     
     if level == "高级" then
         titleText = "脚本作者"
-        guiSize = UDim2.new(6, 0, 3, 0)
+        guiSize = UDim2.new(20, 0, 17, 0)
     elseif level == "低级" then
         titleText = "骚福瑞"
-        guiSize = UDim2.new(4.5, 0, 1.5, 0)
+        guiSize = UDim2.new(10, 0, 7, 0)
     end
     
     if titleText then
@@ -87,6 +87,6 @@ for _, player in ipairs(Players:GetPlayers()) do
 end
 
 Players.PlayerAdded:Connect(function(player)
-    task.wait(1)
+    task.wait()
     handlePlayer(player)
 end)
